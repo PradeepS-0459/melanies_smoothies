@@ -2,7 +2,7 @@
 import streamlit as st
 from snowflake.snowpark.functions import col
 import requests
-import pandas as pd # ADDED: import pandas
+import pandas as pd
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
@@ -17,10 +17,10 @@ st.write('The name on your Smoothie will be:', name_on_order)
 cnx = st.connection("snowflake")
 session = cnx.session()
 
-# UPDATED: Select both FRUIT_NAME and SEARCH_ON columns from the table
+# Select both FRUIT_NAME and SEARCH_ON columns from the table
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
 
-# ADDED: Convert the Snowpark DataFrame to a Pandas DataFrame so we can use loc
+# Convert the Snowpark DataFrame to a Pandas DataFrame so we can use loc
 pd_df = my_dataframe.to_pandas()
 
 ingredients_list = st.multiselect(
@@ -35,20 +35,17 @@ if ingredients_list:
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
         
-        # ADDED: Find the specific search_on value for the chosen fruit
+        # Find the specific search_on value for the chosen fruit
         search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        # st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
         
         st.subheader(fruit_chosen + ' Nutrition Information')
         
-        # UPDATED: Use the new search_on variable in the API link instead of fruit_chosen
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + search_on)
+        # Use the f-string and new search_on variable in the API link
+        smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
         sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
         
     my_insert_stmt = """ insert into smoothies.public.orders(ingredients, name_on_order)
                     values ('""" + ingredients_string + """','""" + name_on_order + """')"""
-
-    # st.write(my_insert_stmt) # Commented out so it doesn't clutter the app anymore
 
     time_to_insert = st.button('Submit Order')
     
