@@ -50,6 +50,10 @@ if ingredients_list:
 
 
 
-import requests  
-requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+import requests
+
+smoothiefroot_response = requests.get(
+    "https://my.smoothiefroot.com/api/fruit/watermelon"
+)
+
 st.text(smoothiefroot_response)
